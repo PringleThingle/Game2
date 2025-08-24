@@ -38,13 +38,11 @@ sf::Vector2f getVectorFromForce(double mass, long double force, sf::Vector2f dir
 
 inline float dot(const sf::Vector2f& a, const sf::Vector2f& b) { return a.x * b.x + a.y * b.y; }
 
-void doCircleCollision(Planet planet1, Planet planet2, float restitution = 0.8f)
+void doPlanetCollision(Planet planet1, Planet planet2, float restitution = 0.8f)
 {
     sf::Vector2f vectorBetweenPlanets = vectorFromPlanets(planet1, planet2);
     float centerDistance = std::sqrt((vectorBetweenPlanets.x * vectorBetweenPlanets.x) + (vectorBetweenPlanets.y * vectorBetweenPlanets.y));
     float minimumDistance = planet1.radius + planet2.radius;
-
-
 }
 
 constexpr double softening2 = 1e6;         // (meters^2) tune per your scale
@@ -80,9 +78,9 @@ int main()
     planet3.mass = 1.0e10;
     planet3.radius = 50;
 
-    planets.push_back(planet1);
-    planets.push_back(planet2);
-    planets.push_back(planet3);
+    //planets.push_back(planet1);
+    //planets.push_back(planet2);
+    //planets.push_back(planet3);
 
     //Main game loop
     while (window.isOpen())
@@ -110,7 +108,15 @@ int main()
                 }
                 sf::Vector2i pixel = sf::Mouse::getPosition(window);
                 // left mouse button is pressed: Place circle
-                planets.push_back(Planet{ static_cast<sf::Vector2f>(pixel), 30.f, 1.0e10 });
+                planets.push_back(Planet{ static_cast<sf::Vector2f>(pixel), 30.f, 1.0e12, sf::Vector2f(0,0) });
+                
+            } 
+
+            // window resize
+            if (const auto* resized = event->getIf<sf::Event::Resized>())
+            {
+                sf::FloatRect visibleArea({ 0.f, 0.f }, sf::Vector2f(resized->size));
+                window.setView(sf::View(visibleArea));
             }
         }
 
@@ -142,18 +148,31 @@ int main()
                 planetAccelerations[x] += accelerationOnX;
                 planetAccelerations[y] += accelerationOnY;
 
-                std::cout << "Force: " << force << std::endl;
-
-                /*doCircleCollision(planets[x], planets[y]);*/
-                    
+                std::cout << "Force: " << force << std::endl;  
             }
         }
 
         for (std::size_t i = 0; i < planets.size(); ++i)
         {
+
+            //----------------------------------------EDGE OF WINDOW COLLISION------------------------------------
+            if ((window.getSize().x <= (planets[i].position.x + planets[i].radius)) || ((planets[i].position.x - planets[i].radius) <= 0))
+            {
+                planets[i].velocity.x = -planets[i].velocity.x;
+            }
+
+            if ((window.getSize().y <= (planets[i].position.y + planets[i].radius)) || ((planets[i].position.y - planets[i].radius) <= 0))
+            {
+                planets[i].velocity.y = -planets[i].velocity.y;
+            }
+            //----------------------------------------------------------------------------------------------------
+
+
             planets[i].velocity += planetAccelerations[i] * deltaTime;
             planets[i].position += planets[i].velocity * deltaTime;
         }
+
+
 
         window.clear(sf::Color::Black);
 

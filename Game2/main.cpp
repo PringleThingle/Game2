@@ -82,6 +82,10 @@ int main()
     //planets.push_back(planet2);
     //planets.push_back(planet3);
 
+    sf::Texture planetTexture;
+    planetTexture.loadFromFile("Assets/rusts.jpg");
+    planetTexture.setSmooth(true);
+
     //Main game loop
     while (window.isOpen())
     {
@@ -108,7 +112,7 @@ int main()
                 }
                 sf::Vector2i pixel = sf::Mouse::getPosition(window);
                 // left mouse button is pressed: Place circle
-                planets.push_back(Planet{ static_cast<sf::Vector2f>(pixel), 30.f, 1.0e12, sf::Vector2f(0,0) });
+                planets.push_back(Planet{ static_cast<sf::Vector2f>(pixel), 50.f, 1.0e10, sf::Vector2f(0,0) });
                 
             } 
 
@@ -156,16 +160,33 @@ int main()
         {
 
             //----------------------------------------EDGE OF WINDOW COLLISION------------------------------------
-            if ((window.getSize().x <= (planets[i].position.x + planets[i].radius)) || ((planets[i].position.x - planets[i].radius) <= 0))
+            if ((window.getSize().x < (planets[i].position.x + planets[i].radius)))
             {
+                planets[i].position.x = window.getSize().x - planets[i].radius;
+                planets[i].velocity.x = -planets[i].velocity.x;
+            }
+            if (((planets[i].position.x - planets[i].radius) < 0))
+            {
+                planets[i].position.x = planets[i].radius;
                 planets[i].velocity.x = -planets[i].velocity.x;
             }
 
-            if ((window.getSize().y <= (planets[i].position.y + planets[i].radius)) || ((planets[i].position.y - planets[i].radius) <= 0))
+            if ((window.getSize().y < (planets[i].position.y + planets[i].radius)))
             {
+                planets[i].position.y = window.getSize().y - planets[i].radius;
+                planets[i].velocity.y = -planets[i].velocity.y;
+            }
+
+            if (((planets[i].position.y - planets[i].radius) < 0))
+            {
+                planets[i].position.y = planets[i].radius;
                 planets[i].velocity.y = -planets[i].velocity.y;
             }
             //----------------------------------------------------------------------------------------------------
+
+            //----------------------------------------------------------------------------------------------------
+
+
 
 
             planets[i].velocity += planetAccelerations[i] * deltaTime;
@@ -180,9 +201,10 @@ int main()
         for (Planet planet : planets)
         {
             sf::CircleShape shape(planet.radius);
-            shape.setFillColor(sf::Color(100, 250, 50));
+            /*shape.setFillColor(sf::Color(100, 250, 50));*/
             shape.setPosition(sf::Vector2f(static_cast<float>(planet.position.x),static_cast<float>(planet.position.y)));
             shape.setOrigin({static_cast<float>(planet.radius), static_cast<float>(planet.radius)});
+            shape.setTexture(&planetTexture);
             window.draw(shape);
         }
 
